@@ -11,11 +11,13 @@ CONFIG += c++17
 
 SOURCES += \
     camerahandler.cpp \
+    kalibrierung.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     camerahandler.h \
+    kalibrierung.h \
     mainwindow.h
 
 FORMS += \
