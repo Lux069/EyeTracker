@@ -18,15 +18,18 @@ public:
     }
     void CamCal();
     void CamCalConfirm();
-    int mStep;
-    bool calFlag = false;
-    QVector<bool> showCircle = {false, false, false, false};
 
-    void KaliAbfolge();
 signals:
     void updateOverlay();   // Signal: Overlay soll neu malen
+    void overlayStatusChanged(bool active);
 
-protected:
+
+
+private:
+    int mStep;
+    bool calFlag = false;
+
+    QVector<bool> showCircle = {false, false, false, false};
     void paintEvent(QPaintEvent *){
 
         int r = 30;   // Radius der Kalibrierkreise
@@ -39,10 +42,10 @@ protected:
         painter.setBrush(Qt::NoBrush);
 
         QPoint positions[4] = {
-            QPoint(r , r ),
-            QPoint(w - r , r ),
-            QPoint(r , h - r),
-            QPoint(w - r, h - r)
+            QPoint(r + 10 , r + 10 ),
+            QPoint(w - r -10, r + 10),
+            QPoint(r +10, h - r -10),
+            QPoint(w - r -10, h - r -10)
         };
 
         for (int i = 0; i < showCircle.size(); ++i) {

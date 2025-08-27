@@ -11,12 +11,14 @@ CONFIG += c++17
 
 SOURCES += \
     camerahandler.cpp \
+    eyepositionpainter.cpp \
     kalibrierung.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     camerahandler.h \
+    eyepositionpainter.h \
     kalibrierung.h \
     mainwindow.h
 

@@ -2,8 +2,12 @@
 
 void Kalibrierung::CamCal(){
     calFlag = true;
-    qDebug() << "Klick";
+    //qDebug() << "Klick";
+    emit overlayStatusChanged(calFlag);
     mStep = 0;
+    showCircle = {false, false, false,false};
+
+
 
     if (mStep < showCircle.size()) {
         // Zeige neuen Kreis
@@ -17,8 +21,9 @@ void Kalibrierung::CamCal(){
         std::fill(showCircle.begin(), showCircle.end(), false);
         mStep = 0;
         update();
-        emit updateOverlay();  // Overlay updaten
+        emit updateOverlay();  // Overlay updaten   
         calFlag = false;
+        emit overlayStatusChanged(calFlag);
     }
 
 }
@@ -29,16 +34,21 @@ void Kalibrierung::CamCalConfirm(){
             // Zeige neuen Kreis
             showCircle[mStep] = true;
             update(); // löst paintEvent aus
+
+            if (mStep >= 1){
+                showCircle[mStep - 1] = false;
+            }
             emit updateOverlay();  // Overlay updaten
             mStep++;
         }
         else {
             // Alle Kreise wieder ausblenden
-            std::fill(showCircle.begin(), showCircle.end(), false);
+            showCircle = {false, false, false,false};
             mStep = 0;
             update();
             emit updateOverlay();  // Overlay updaten
             calFlag = false;
+            emit overlayStatusChanged(calFlag);
         }
 
     }

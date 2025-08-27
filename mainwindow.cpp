@@ -13,7 +13,6 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
     , mCameraHandler(new CameraHandler(this))
     , mOverlay(nullptr)
-    , mKaliVerbinder(new Kalibrierung(this))
 
 {
     ui->setupUi(this);
@@ -21,6 +20,36 @@ MainWindow::MainWindow(QWidget *parent)
     // Vollbild starten
     showMaximized();
 
+    //Overlays initialisieren
+    setupOverlays();
+
+    //Signale/Slots verbinden
+    setupConnections();
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::processFrame(QImage &frame)
+{
+
+    //Hier passier die Magie der Bildverarbeitung
+    //TODO: Link zu Mareks Code, welcher mir Koordinaten ausgibt und Kalibrierung
+
+    int eyeX = frame.width() / 2;
+    int eyeY = frame.height() / 2;
+
+    // Setze die neuen Koordinaten im Overlay
+    if (mEyePainter) {
+        mEyePainter->updatePosition(eyeX, eyeY);
+    }
+
+    // Zeige den Frame im Label
+    displayFrame(frame);
+}
+void MainWindow::setupOverlays(){
     //Label für Kamerabild wird definiert und skaliert sich mit dem Vollbild zentral mit Randabstand
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(30, 30, 30, 50); // fester Rand
@@ -39,39 +68,47 @@ MainWindow::MainWindow(QWidget *parent)
     layout->addLayout(buttonLayout);
     ui->centralwidget->setLayout(layout);
 
-    //Implementierung von dem Beobachter Muster via Qt-Signal
-    connect(mCameraHandler, &CameraHandler::frameReady,
-            this,&MainWindow::displayFrame);
-
-    //Verbinden der Start/Stop Buttons mit CameraHandler
-    //Ersatz für den Slot aus Qt-Designer
-    connect(ui->pbCamStart, &QPushButton::clicked, mCameraHandler, &CameraHandler::startCam);
-    connect(ui->pbCamStop, &QPushButton::clicked, mCameraHandler, &CameraHandler::stopCam);
-    connect(ui->pbCamCal, &QPushButton::clicked, mKaliVerbinder, &Kalibrierung::CamCal);
-    connect(ui->pbCamCalConfirm, &QPushButton::clicked, mKaliVerbinder, &Kalibrierung::CamCalConfirm);
-
     //Overlay über dem Kameralabel:
     mOverlay = new Kalibrierung(ui->centralwidget);
     mOverlay->setAttribute(Qt::WA_TransparentForMouseEvents);
     mOverlay->setAttribute(Qt::WA_NoSystemBackground);
     mOverlay->setAttribute(Qt::WA_TranslucentBackground);
     mOverlay->raise();
-
     // Position und Größe passend über das Label
     mOverlay->resize(ui->label->size());
-    mOverlay->move(ui->label->pos());
+    mOverlay->move(0,0);
     mOverlay->show();
 
-    //Overlay update nach Button Klick
-    connect(mKaliVerbinder, &Kalibrierung::updateOverlay, mOverlay, QOverload<>::of(&Kalibrierung::update));
 
+    //Übergabe des Kalibirerstatus zum EyePositionPainter --> Augenposiiton wird gemalt wenn Kalibrierung nicht aktiv ist
+    mEyePainter = new EyePositionPainter(ui->centralwidget);
+    mEyePainter->setAttribute(Qt::WA_TransparentForMouseEvents);
+    mEyePainter->setAttribute(Qt::WA_NoSystemBackground);
+    mEyePainter->setAttribute(Qt::WA_TranslucentBackground);
+    mEyePainter->raise();
+    // Position und Größe passend über das Label
+    mEyePainter->resize(ui->label->size());
+    mEyePainter->move(0,0);
+    mEyePainter->show();
 }
 
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
+void MainWindow::setupConnections(){
+    //Übergabe des Webcambildes zur Ausgabe in der GUI
+    connect(mCameraHandler, &CameraHandler::frameReady, this,&MainWindow::displayFrame);
 
+    //Verbinden der Start/Stop Buttons mit CameraHandler
+    connect(ui->pbCamStart, &QPushButton::clicked, mCameraHandler, &CameraHandler::startCam);
+    connect(ui->pbCamStop, &QPushButton::clicked, mCameraHandler, &CameraHandler::stopCam);
+
+    //Verbinden der Buttons aus der GUI mit Kalibrierlogik
+    connect(ui->pbCamCal, &QPushButton::clicked, mOverlay, &Kalibrierung::CamCal);
+    connect(ui->pbCamCalConfirm, &QPushButton::clicked, mOverlay, &Kalibrierung::CamCalConfirm);
+
+    //Neues Bild aus der Webcam geht an die Bildverarbeitung
+    connect(mCameraHandler, &CameraHandler::frameReady, this, &MainWindow::processFrame);
+    //Status, ob Kalibirerung aktiv ist geht von Kalibrierlogik zur Darstellung des Blickpunktes
+    connect(mOverlay, &Kalibrierung::overlayStatusChanged, mEyePainter, &EyePositionPainter::PaintEyePosition);
+}
 
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
@@ -83,7 +120,6 @@ void MainWindow::resizeEvent(QResizeEvent *event)
         mOverlay->update();
     }
 }
-
 
 void MainWindow::displayFrame(QImage &frame)
 {
