@@ -9,6 +9,7 @@
 #include <QImage>
 #include <QScopedPointer>
 #include <QMediaCaptureSession>
+#include <QPermissions>
 
 
 class CameraHandler : public QObject
@@ -17,14 +18,13 @@ class CameraHandler : public QObject
     //Wird gebraucht, um später mit connect() auf diese Klasse zuzugreifen.
     //Das macht es einfacher mit Pointern umzugehen da man die dann nicht manuell löschen muss.
 public:
-    explicit CameraHandler(QObject *parent = nullptr);
+    CameraHandler(QObject *parent = nullptr);
     void startCam();
     void stopCam();
-    void setResolution(int width, int height);
 
 signals:
     // Ein Signal wird ausgegeben, wenn ein neues Bild von der Kamera verfügbar ist.
-    void frameReady(QImage &frame);
+    void frameReady(const QImage &frame); // const, damit das Signal das exakte Bild übergibt
 
 
 private slots:
@@ -34,6 +34,7 @@ private:
     QScopedPointer<QCamera> mCamera; //Qt Version von einem unique Pointer, ich will hier nicht die Standardbibliothek mitschleppen
     QScopedPointer<QVideoSink> mVideoSink;
     QScopedPointer<QMediaCaptureSession> mCaptureSession;
+    QCameraPermission perm;
 
 };
 

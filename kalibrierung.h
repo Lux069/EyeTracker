@@ -4,12 +4,13 @@
 #include <QObject>
 #include <QWidget>
 #include <QPainter>
+#include <cmath>
 
 class Kalibrierung : public QWidget
 {
     Q_OBJECT
 public:
-    explicit Kalibrierung(QWidget *parent = nullptr)
+    Kalibrierung(QWidget *parent = nullptr)
         : QWidget(parent)
     {
         setAttribute(Qt::WA_TransparentForMouseEvents); //Overlay hat keine Interaktion mit der Maus
@@ -18,16 +19,20 @@ public:
     }
     void CamCal();
     void CamCalConfirm();
+    void calibrationData(QPoint position);
 
 signals:
     void updateOverlay();   // Signal: Overlay soll neu malen
     void overlayStatusChanged(bool active);
+    void sendCalData(QVector<QPoint>);
 
 
 
 private:
+    QVector<QPoint> mCalData;
+    QPoint mData;
     int mStep;
-    bool calFlag = false;
+    bool calFlag = true;
 
     QVector<bool> showCircle = {false, false, false, false};
     void paintEvent(QPaintEvent *){

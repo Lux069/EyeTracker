@@ -1,6 +1,7 @@
 #include "camerahandler.h"
 #include <QMediaCaptureSession>
 #include <QDebug>
+#include <QApplication>
 
 CameraHandler::CameraHandler(QObject *parent)
     : QObject(parent),
@@ -21,7 +22,21 @@ CameraHandler::CameraHandler(QObject *parent)
 
 void CameraHandler::startCam()
 {
-    mCamera->start();
+    //mCamera->start();
+
+    //Kamerazugriff (Für Mac)
+    if (qApp->checkPermission(perm) == Qt::PermissionStatus::Granted) {
+        // Kamera direkt starten
+        mCamera->start();
+    } else {
+        // Zugriff anfragen – Callback wird aufgerufen, wenn der User reagiert
+        qApp->requestPermission(perm, this, [this](const QPermission &p){
+            if (p.status() == Qt::PermissionStatus::Granted) {
+                mCamera->start();
+            } else {}
+        });
+    }
+
 }
 
 void CameraHandler::stopCam()

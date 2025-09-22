@@ -7,6 +7,7 @@
 #include "camerahandler.h"
 #include "eyepositionpainter.h"
 #include "kalibrierung.h"
+#include "Position_Localizer/filter.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -23,11 +24,7 @@ public:
     ~MainWindow();
 
 private slots:
-    // void on_pbCamStart_clicked();
-    // void on_pbCamStop_clicked();
-
-    void displayFrame(QImage &frame);
-    void processFrame(QImage &frame);
+    void displayFrame(const QImage &frame);
     void resizeEvent(QResizeEvent *event);
 private:
     Ui::MainWindow *ui;
@@ -35,6 +32,7 @@ private:
     QLabel *mVideoLabel;
     Kalibrierung *mOverlay = nullptr;
     EyePositionPainter *mEyePainter;
+    Filter *mFilter;
     void setupConnections();
     void setupOverlays();
     };
